@@ -24,7 +24,8 @@ class Device(object):
     __partitions = None
 
     def __init__(self, id, name, zone, device_type, subtype,
-                 preenroll, warnings, partitions, temperature = None):
+                 preenroll, warnings, partitions,
+                 brightness = None, temperature = None):
         """ Set the private variable values on instantiation. """
 
         self.__id = id
@@ -35,6 +36,7 @@ class Device(object):
         self.__preenroll = preenroll
         self.__warnings = warnings
         self.__partitions = partitions
+        self.__brightness = brightness
         self.__temperature = temperature
 
     # Device properties
@@ -79,10 +81,14 @@ class Device(object):
         return self.__partitions
 
     @property
+    def brightness(self):
+        """ Device brightness. """
+        return self.__brightness
+
+    @property
     def temperature(self):
         """ Device temperature. """
         return self.__temperature
-
 
 class ContactDevice(Device):
     """ Contact device class definition. """
@@ -426,6 +432,8 @@ class System(object):
                         )
                         self.__system_devices.append(camera_device)
                     elif device['subtype'] == 'MOTION' or device['subtype'] == 'CURTAIN' or device['subtype'] == 'FLAT_PIR_SMART':
+                        try: brightness=device['traits']['meteo_info']['brightness']['value']
+                        except: brightness=None
                         try: temperature=device['traits']['meteo_info']['temperature']['value']
                         except: temperature=None
                         motion_device = MotionDevice(
@@ -437,9 +445,11 @@ class System(object):
                             preenroll=device['preenroll'],
                             warnings=device['warnings'],
                             partitions=device['partitions'],
+                            brightness=brightness,
                             temperature=temperature
                         )
                         self.__system_devices.append(motion_device)
+                        del(brightness)
                         del(temperature)
                     elif device['subtype'] == 'SMOKE':
                         smoke_device = SmokeDevice(
